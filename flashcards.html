@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>System Admin Quiz</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#f5f6fa;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+flex-direction:column;
+}
+
+.card{
+background:white;
+padding:30px;
+border-radius:15px;
+box-shadow:0 5px 15px rgba(0,0,0,0.1);
+width:650px;
+text-align:center;
+cursor:pointer;
+min-height:200px;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:18px;
+}
+
+button{
+padding:12px 25px;
+margin:10px;
+border:none;
+border-radius:8px;
+cursor:pointer;
+font-weight:bold;
+}
+
+.correct{
+background:#22c55e;
+color:white;
+}
+
+.wrong{
+background:#ef4444;
+color:white;
+}
+
+.progress{
+width:650px;
+height:10px;
+background:#ddd;
+border-radius:20px;
+margin-bottom:20px;
+overflow:hidden;
+}
+
+.bar{
+height:100%;
+width:0%;
+background:#4f46e5;
+}
+
+.score{
+margin-bottom:10px;
+font-weight:bold;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h2>System Administration Quiz</h2>
+
+<div class="score">
+Score: <span id="score">0</span>
+</div>
+
+<div class="progress">
+<div class="bar" id="bar"></div>
+</div>
+
+<div class="card" id="card"></div>
+
+<div id="buttons" style="display:none">
+<button class="correct" onclick="correct()">Correct</button>
+<button class="wrong" onclick="wrong()">Wrong</button>
+</div>
+
+<script>
+
+let flashcards = [
+
+{term:"System administration and maintenance",
+def:"Refer to the management and upkeep of computer systems and networks, including hardware, software, and data storage systems."},
+
+{term:"System Administrator (SysAdmin)",
+def:"An IT professional responsible for setting up, maintaining, and troubleshooting an organization's servers, networks, and systems."},
+
+{term:"Keeping the lights on",
+def:"Ensuring the uptime of companies' computers, servers, and internet to minimize work disruptions."},
+
+{term:"Uptime",
+def:"The period during which a computer or server is operational and available for use."},
+
+{term:"Documentation",
+def:"Records of the company's IT systems, including network diagrams, configuration instructions, and troubleshooting procedures."},
+
+{term:"Security management",
+def:"Ensuring compliance with security policies in order to safeguard the organization's IT resources against unauthorized access, malware, and various other threats."},
+
+{term:"Data backup and recovery",
+def:"Implementing and maintaining procedures to protect the organization's valuable data and ensure it can be recovered in the event of a system failure."},
+
+{term:"Network maintenance",
+def:"Monitoring and maintaining the network infrastructure, ensuring it runs smoothly and efficiently."},
+
+{term:"End-user support",
+def:"Offering technical assistance to users by resolving computer, network, and application issues."},
+
+{term:"Troubleshooting",
+def:"The process of identifying and resolving any technical issues that may arise within the system."},
+
+{term:"Windows Admin Center",
+def:"Modern, browser-based management for day-to-day server administration."},
+
+{term:"RSAT (Remote Server Administration Tools)",
+def:"Includes Server Manager and MMC snap-ins for remote administration."},
+
+{term:"PowerShell",
+def:"An object-oriented command shell and scripting language for direct server access and automation."},
+
+{term:"Event Viewer",
+def:"Used for logs analysis and incident tracking."},
+
+{term:"Disk Management",
+def:"A system utility for controlling Windows services and drive partitions."},
+
+{term:"Server Manager",
+def:"A GUI administration tool for managing both local and remote Windows-based servers."},
+
+{term:"Azure Arc",
+def:"Cloud-based management that extends Azure governance, security, and monitoring to servers anywhere."},
+
+{term:"System Center",
+def:"Enterprise-scale management for large datacenters requiring comprehensive monitoring and deployment."},
+
+{term:"Performance Monitor",
+def:"A tool for monitoring system performance in real-time."},
+
+{term:"Services",
+def:"A tool used to control and manage Windows background processes."},
+
+{term:"VirtualBox",
+def:"A virtualization tool that allows you to run multiple guest operating systems on a single host."},
+
+{term:"Guest OS",
+def:"The operating system that is installed and running inside a virtual machine."},
+
+{term:"Host OS",
+def:"The primary operating system of the physical computer on which VirtualBox is installed."},
+
+{term:"Extension Pack",
+def:"Enhances functionality by adding support for USB 2.0/3.0 devices, RDP, and disk encryption."},
+
+{term:"ISO Image",
+def:"A bootable disk file used for installing an operating system on a virtual machine."},
+
+{term:"Snapshot",
+def:"A record of the VM state used for lab resets or restoring to a previous point in time."},
+
+{term:"NAT (Network Address Translation)",
+def:"The default networking mode used for allowing the VM to access the internet."},
+
+{term:"Host-only Adapter",
+def:"A network mode for isolation where VMs can only communicate with each other and the host."},
+
+{term:"CIDR (Classless Inter-Domain Routing)",
+def:"A method for allocating IP addresses that improves routing efficiency."},
+
+{term:"Guest Additions",
+def:"Software tools installed in the guest OS to optimize performance and integration."},
+
+{term:"Computer Server",
+def:"A high-powered computer or software system that manages network resources and provides services to clients."},
+
+{term:"Web Server",
+def:"Delivers web content (HTML pages, images) to users via browsers using HTTP."},
+
+{term:"File Server",
+def:"Dedicated to storing and managing files, allowing multiple users on a network to share documents."},
+
+{term:"Database Server",
+def:"Houses databases, processing queries and managing data access for applications."},
+
+{term:"Proxy Server",
+def:"Acts as an intermediary between a client and a server, providing security and caching."},
+
+{term:"Physical Server",
+def:"A \"bare metal\" server where the OS interacts directly with dedicated CPU, RAM, and storage."},
+
+{term:"Edge Server",
+def:"A specialized computer located near end users to process data locally and reduce latency."},
+
+{term:"Tower Server",
+def:"Standalone units that look like traditional desktop towers, used by small businesses."},
+
+{term:"Rack Server",
+def:"Servers designed to be mounted into a framework (rack) to save space."},
+
+{term:"Blade Server",
+def:"Ultra-thin, modular servers designed to maximize space and energy efficiency."},
+
+{term:"Directory Service",
+def:"A hierarchical structure that stores information about objects on the network."},
+
+{term:"AD DS (Active Directory Domain Services)",
+def:"A core function in Microsoft’s Active Directory for building a centralized and scalable Windows network."},
+
+{term:"Schema",
+def:"A set of rules that defines the classes of objects and attributes contained in the directory."},
+
+{term:"Global Catalog",
+def:"Contains information about every object in the directory, allowing users to find info regardless of domain."},
+
+{term:"LDAP (Lightweight Directory Access Protocol)",
+def:"The standard protocol used to read from and write to directory services."},
+
+{term:"Replication",
+def:"The process of distributing and synchronizing directory data across all domain controllers."},
+
+{term:"Organizational Unit (OU)",
+def:"Containers within a domain used to organize objects and mirror an organization’s layout."},
+
+{term:"Domain Controller (DC)",
+def:"A server that contains a complete copy of directory information and manages authentication."},
+
+{term:"Authentication",
+def:"The process of verifying user identity (logins)."},
+
+{term:"Authorization",
+def:"Controls access to network resources based on security policies."}
+
+];
+
+let current = 0;
+let score = 0;
+let wrongCards = [];
+let flipped = false;
+
+const card = document.getElementById("card");
+const scoreText = document.getElementById("score");
+const bar = document.getElementById("bar");
+
+function showCard(){
+flipped=false;
+card.innerHTML = flashcards[current].def;
+document.getElementById("buttons").style.display="none";
+updateProgress();
+}
+
+card.addEventListener("click",()=>{
+
+if(!flipped){
+card.innerHTML = "<b>"+flashcards[current].term+"</b>";
+document.getElementById("buttons").style.display="block";
+flipped=true;
+}else{
+card.innerHTML = flashcards[current].def;
+document.getElementById("buttons").style.display="none";
+flipped=false;
+}
+
+});
+
+function correct(){
+score++;
+scoreText.innerText=score;
+next();
+}
+
+function wrong(){
+wrongCards.push(flashcards[current]);
+next();
+}
+
+function next(){
+
+current++;
+
+if(current >= flashcards.length){
+
+if(wrongCards.length > 0){
+flashcards = wrongCards;
+wrongCards=[];
+current=0;
+}else{
+card.innerHTML="🎉 PERFECT SCORE!";
+document.getElementById("buttons").style.display="none";
+return;
+}
+
+}
+
+showCard();
+}
+
+function updateProgress(){
+let progress = (current/flashcards.length)*100;
+bar.style.width = progress+"%";
+}
+
+showCard();
+
+</script>
+
+</body>
+</html>
