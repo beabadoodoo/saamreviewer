@@ -1,326 +1,239 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>80-Item SysAdmin Master Reviewer (Definition First)</title>
+    <style>
+        :root { --primary: #1a2a6c; --accent: #f24e1e; --bg: #f0f2f5; --correct: #27ae60; --wrong: #e74c3c; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 20px; overflow-x: hidden; }
+        
+        .header { text-align: center; margin-bottom: 20px; }
+        .stats-container { display: flex; gap: 20px; margin-bottom: 10px; font-weight: bold; }
+        .stat-box { padding: 10px 20px; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        
+        .card-container { perspective: 1000px; width: 450px; height: 320px; cursor: pointer; position: relative; }
+        .card { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.4s; transform-style: preserve-3d; box-shadow: 0 10px 25px rgba(0,0,0,0.2); border-radius: 15px; }
+        .card.flipped { transform: rotateY(180deg); }
+        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; box-sizing: border-box; border-radius: 15px; border: 3px solid var(--primary); background: white; }
+        
+        /* Definition on Front */
+        .card-front { color: #333; font-size: 1.1rem; line-height: 1.6; font-weight: 500; }
+        /* Term on Back */
+        .card-back { background: var(--primary); color: white; transform: rotateY(180deg); font-size: 1.6rem; font-weight: 800; }
+        
+        .category-tag { position: absolute; top: 15px; font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; }
+        .hint { margin-top: 15px; font-size: 0.8rem; color: #555; font-style: italic; }
+        .card-back .hint { color: #ddd; }
 
-<title>System Admin Quiz</title>
-
-<style>
-
-body{
-font-family:Arial;
-background:#f5f6fa;
-display:flex;
-justify-content:center;
-align-items:center;
-height:100vh;
-flex-direction:column;
-}
-
-.card{
-background:white;
-padding:30px;
-border-radius:15px;
-box-shadow:0 5px 15px rgba(0,0,0,0.1);
-width:650px;
-text-align:center;
-cursor:pointer;
-min-height:200px;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:18px;
-}
-
-button{
-padding:12px 25px;
-margin:10px;
-border:none;
-border-radius:8px;
-cursor:pointer;
-font-weight:bold;
-}
-
-.correct{
-background:#22c55e;
-color:white;
-}
-
-.wrong{
-background:#ef4444;
-color:white;
-}
-
-.progress{
-width:650px;
-height:10px;
-background:#ddd;
-border-radius:20px;
-margin-bottom:20px;
-overflow:hidden;
-}
-
-.bar{
-height:100%;
-width:0%;
-background:#4f46e5;
-}
-
-.score{
-margin-bottom:10px;
-font-weight:bold;
-}
-
-</style>
-
+        .controls { margin-top: 30px; display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
+        button { padding: 12px 25px; font-size: 1rem; cursor: pointer; border: none; border-radius: 8px; background: var(--primary); color: white; transition: 0.2s; font-weight: bold; }
+        button:hover { transform: translateY(-2px); opacity: 0.9; }
+        
+        .btn-correct { background: var(--correct); }
+        .btn-wrong { background: var(--wrong); }
+        
+        .keyboard-guide { margin-top: 25px; font-size: 0.85rem; color: #666; background: #ddd; padding: 5px 15px; border-radius: 20px; }
+        kbd { background: #eee; border-radius: 3px; border: 1px solid #b4b4b4; box-shadow: 0 1px 1px rgba(0,0,0,0.2); font-family: sans-serif; padding: 2px 4px; }
+    </style>
 </head>
-
 <body>
 
-<h2>System Administration Quiz</h2>
-
-<div class="score">
-Score: <span id="score">0</span>
-</div>
-
-<div class="progress">
-<div class="bar" id="bar"></div>
-</div>
-
-<div class="card" id="card"></div>
-
-<div id="buttons" style="display:none">
-<button class="correct" onclick="correct()">Correct</button>
-<button class="wrong" onclick="wrong()">Wrong</button>
-</div>
-
-<script>
-
-let flashcards = [
-
-{term:"System administration and maintenance",
-def:"Refer to the management and upkeep of computer systems and networks, including hardware, software, and data storage systems."},
-
-{term:"System Administrator (SysAdmin)",
-def:"An IT professional responsible for setting up, maintaining, and troubleshooting an organization's servers, networks, and systems."},
-
-{term:"Keeping the lights on",
-def:"Ensuring the uptime of companies' computers, servers, and internet to minimize work disruptions."},
-
-{term:"Uptime",
-def:"The period during which a computer or server is operational and available for use."},
-
-{term:"Documentation",
-def:"Records of the company's IT systems, including network diagrams, configuration instructions, and troubleshooting procedures."},
-
-{term:"Security management",
-def:"Ensuring compliance with security policies in order to safeguard the organization's IT resources against unauthorized access, malware, and various other threats."},
-
-{term:"Data backup and recovery",
-def:"Implementing and maintaining procedures to protect the organization's valuable data and ensure it can be recovered in the event of a system failure."},
-
-{term:"Network maintenance",
-def:"Monitoring and maintaining the network infrastructure, ensuring it runs smoothly and efficiently."},
-
-{term:"End-user support",
-def:"Offering technical assistance to users by resolving computer, network, and application issues."},
-
-{term:"Troubleshooting",
-def:"The process of identifying and resolving any technical issues that may arise within the system."},
-
-{term:"Windows Admin Center",
-def:"Modern, browser-based management for day-to-day server administration."},
-
-{term:"RSAT (Remote Server Administration Tools)",
-def:"Includes Server Manager and MMC snap-ins for remote administration."},
-
-{term:"PowerShell",
-def:"An object-oriented command shell and scripting language for direct server access and automation."},
-
-{term:"Event Viewer",
-def:"Used for logs analysis and incident tracking."},
-
-{term:"Disk Management",
-def:"A system utility for controlling Windows services and drive partitions."},
-
-{term:"Server Manager",
-def:"A GUI administration tool for managing both local and remote Windows-based servers."},
-
-{term:"Azure Arc",
-def:"Cloud-based management that extends Azure governance, security, and monitoring to servers anywhere."},
-
-{term:"System Center",
-def:"Enterprise-scale management for large datacenters requiring comprehensive monitoring and deployment."},
-
-{term:"Performance Monitor",
-def:"A tool for monitoring system performance in real-time."},
-
-{term:"Services",
-def:"A tool used to control and manage Windows background processes."},
-
-{term:"VirtualBox",
-def:"A virtualization tool that allows you to run multiple guest operating systems on a single host."},
-
-{term:"Guest OS",
-def:"The operating system that is installed and running inside a virtual machine."},
-
-{term:"Host OS",
-def:"The primary operating system of the physical computer on which VirtualBox is installed."},
-
-{term:"Extension Pack",
-def:"Enhances functionality by adding support for USB 2.0/3.0 devices, RDP, and disk encryption."},
-
-{term:"ISO Image",
-def:"A bootable disk file used for installing an operating system on a virtual machine."},
-
-{term:"Snapshot",
-def:"A record of the VM state used for lab resets or restoring to a previous point in time."},
-
-{term:"NAT (Network Address Translation)",
-def:"The default networking mode used for allowing the VM to access the internet."},
-
-{term:"Host-only Adapter",
-def:"A network mode for isolation where VMs can only communicate with each other and the host."},
-
-{term:"CIDR (Classless Inter-Domain Routing)",
-def:"A method for allocating IP addresses that improves routing efficiency."},
-
-{term:"Guest Additions",
-def:"Software tools installed in the guest OS to optimize performance and integration."},
-
-{term:"Computer Server",
-def:"A high-powered computer or software system that manages network resources and provides services to clients."},
-
-{term:"Web Server",
-def:"Delivers web content (HTML pages, images) to users via browsers using HTTP."},
-
-{term:"File Server",
-def:"Dedicated to storing and managing files, allowing multiple users on a network to share documents."},
-
-{term:"Database Server",
-def:"Houses databases, processing queries and managing data access for applications."},
-
-{term:"Proxy Server",
-def:"Acts as an intermediary between a client and a server, providing security and caching."},
-
-{term:"Physical Server",
-def:"A \"bare metal\" server where the OS interacts directly with dedicated CPU, RAM, and storage."},
-
-{term:"Edge Server",
-def:"A specialized computer located near end users to process data locally and reduce latency."},
-
-{term:"Tower Server",
-def:"Standalone units that look like traditional desktop towers, used by small businesses."},
-
-{term:"Rack Server",
-def:"Servers designed to be mounted into a framework (rack) to save space."},
-
-{term:"Blade Server",
-def:"Ultra-thin, modular servers designed to maximize space and energy efficiency."},
-
-{term:"Directory Service",
-def:"A hierarchical structure that stores information about objects on the network."},
-
-{term:"AD DS (Active Directory Domain Services)",
-def:"A core function in Microsoft’s Active Directory for building a centralized and scalable Windows network."},
-
-{term:"Schema",
-def:"A set of rules that defines the classes of objects and attributes contained in the directory."},
-
-{term:"Global Catalog",
-def:"Contains information about every object in the directory, allowing users to find info regardless of domain."},
-
-{term:"LDAP (Lightweight Directory Access Protocol)",
-def:"The standard protocol used to read from and write to directory services."},
-
-{term:"Replication",
-def:"The process of distributing and synchronizing directory data across all domain controllers."},
-
-{term:"Organizational Unit (OU)",
-def:"Containers within a domain used to organize objects and mirror an organization’s layout."},
-
-{term:"Domain Controller (DC)",
-def:"A server that contains a complete copy of directory information and manages authentication."},
-
-{term:"Authentication",
-def:"The process of verifying user identity (logins)."},
-
-{term:"Authorization",
-def:"Controls access to network resources based on security policies."}
-
-];
-
-let current = 0;
-let score = 0;
-let wrongCards = [];
-let flipped = false;
-
-const card = document.getElementById("card");
-const scoreText = document.getElementById("score");
-const bar = document.getElementById("bar");
-
-function showCard(){
-flipped=false;
-card.innerHTML = flashcards[current].def;
-document.getElementById("buttons").style.display="none";
-updateProgress();
-}
-
-card.addEventListener("click",()=>{
-
-if(!flipped){
-card.innerHTML = "<b>"+flashcards[current].term+"</b>";
-document.getElementById("buttons").style.display="block";
-flipped=true;
-}else{
-card.innerHTML = flashcards[current].def;
-document.getElementById("buttons").style.display="none";
-flipped=false;
-}
-
-});
-
-function correct(){
-score++;
-scoreText.innerText=score;
-next();
-}
-
-function wrong(){
-wrongCards.push(flashcards[current]);
-next();
-}
-
-function next(){
-
-current++;
-
-if(current >= flashcards.length){
-
-if(wrongCards.length > 0){
-flashcards = wrongCards;
-wrongCards=[];
-current=0;
-}else{
-card.innerHTML="🎉 PERFECT SCORE!";
-document.getElementById("buttons").style.display="none";
-return;
-}
-
-}
-
-showCard();
-}
-
-function updateProgress(){
-let progress = (current/flashcards.length)*100;
-bar.style.width = progress+"%";
-}
-
-showCard();
-
-</script>
-
+    <div class="header">
+        <h1>SysAdmin: Definition to Term</h1>
+        <div class="stats-container">
+            <div class="stat-box">Left: <span id="items-left">80</span></div>
+            <div class="stat-box" style="color: var(--correct)">Mastered: <span id="items-mastered">0</span></div>
+        </div>
+    </div>
+
+    <div class="card-container" onclick="flipCard()">
+        <div class="card" id="card-inner">
+            <div class="card-face card-front">
+                <div class="category-tag" id="tag">Category</div>
+                <div id="front-text">Loading Definition...</div>
+                <div class="hint">Click or <kbd>Space</kbd> to reveal the Term</div>
+            </div>
+            <div class="card-face card-back">
+                <div id="back-text">Loading Term...</div>
+                <div class="hint">Press <kbd>Enter</kbd> if you got it!</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn-wrong" onclick="markWrong()">❌ MALI (Repeat)</button>
+        <button class="btn-correct" onclick="markCorrect()">✅ TAMA (Mastered)</button>
+    </div>
+
+    <div class="controls">
+        <button style="background: #666" onclick="prevCard()">⬅️ Prev</button>
+        <button style="background: #666" onclick="nextCard()">Next ➡️</button>
+        <button style="background: #444" onclick="shuffleQueue()">🔀 Shuffle List</button>
+    </div>
+
+    <div class="keyboard-guide">
+        <kbd>Space</kbd> Flip | <kbd>←</kbd> <kbd>→</kbd> Nav | <kbd>Enter</kbd> Correct | <kbd>Esc</kbd> Wrong
+    </div>
+
+    <script>
+        let masterList = [
+            { t: "System Administration and Maintenance", d: "Refers to the management and upkeep of computer systems and networks, including hardware, software, and data storage systems.", c: "Basics" },
+            { t: "Effective Admin Goal", d: "Ensure systems run smoothly, prevent data loss or theft, and minimize downtime.", c: "Basics" },
+            { t: "SysOps", d: "Short for System Operations; an IT professional responsible for setup, maintenance, and troubleshooting.", c: "Basics" },
+            { t: "Network Maintenance", d: "Monitoring and maintaining network infrastructure for smooth and efficient operation.", c: "Basics" },
+            { t: "Data Backup and Recovery", d: "Implementing procedures to protect organizational data against system failure or cyberattacks.", c: "Basics" },
+            { t: "Security Management", d: "Ensuring compliance with security policies to protect IT resources from malware and unauthorized access.", c: "Basics" },
+            { t: "User Account Management", d: "Creating, modifying, and deleting access rights and roles for users.", c: "Basics" },
+            { t: "Asset Inventory", d: "Maintaining an updated list of IT assets to ensure the company is audit-ready.", c: "Basics" },
+            { t: "Time Constraints", d: "The biggest challenge for SysAdmins due to tight deadlines and high-stress situations.", c: "Challenges" },
+            { t: "User Error", d: "The leading cause of most security breaches in an organization.", c: "Challenges" },
+            { t: "Reactive Firefighting", d: "Immediately responding to unexpected server crashes or network outages.", c: "Challenges" },
+            { t: "CompTIA A+", d: "An entry-level certification covering IT hardware and software.", c: "Certs" },
+            { t: "RHCSA", d: "Red Hat Certified System Administrator; a professional certification for Linux.", c: "Certs" },
+            { t: "Windows Admin Center", d: "A browser-based GUI for managing servers, virtual machines, and clusters.", c: "Tools" },
+            { t: "RSAT", d: "Remote Server Administration Tools; includes Server Manager and MMC snap-ins.", c: "Tools" },
+            { t: "Event Viewer", d: "A tool used for log analysis and incident tracking in Windows.", c: "Tools" },
+            { t: "PowerShell", d: "A command-line shell and scripting language used to automate AD DS management tasks.", c: "Tools" },
+            { t: "Guest OS", d: "The operating system running inside a virtual machine.", c: "Virtualization" },
+            { t: "Host OS", d: "The primary operating system where VirtualBox is installed.", c: "Virtualization" },
+            { t: "NAT", d: "Network Address Translation; used in virtual labs for internet access.", c: "Virtualization" },
+            { t: "Host-only Network", d: "Used for isolation and communication between virtual machines only.", c: "Virtualization" },
+            { t: "Snapshots", d: "Used to restore a VM to a specific state, useful for laboratory resets.", c: "Virtualization" },
+            { t: "ISO Image", d: "The file format used as a bootable disk to install an OS on a VM.", c: "Virtualization" },
+            { t: "Computer Server", d: "A high-end computer or software that provides services or data to clients.", c: "Servers" },
+            { t: "Tower Servers", d: "Standalone units resembling desktop PCs, often used by small businesses.", c: "Servers" },
+            { t: "Rack Servers", d: "Designed to be placed in a framework (rack) to save space.", c: "Servers" },
+            { t: "Blade Servers", d: "Ultra-thin, modular servers designed to maximize space and energy efficiency.", c: "Servers" },
+            { t: "Web Server", d: "Delivers web content (HTML, images) via the HTTP protocol.", c: "Servers" },
+            { t: "Database Server", d: "Processes queries and manages data access for applications.", c: "Servers" },
+            { t: "Proxy Server", d: "Acts as an intermediary between client and server for security and caching.", c: "Servers" },
+            { t: "Hypervisor", d: "A software layer (like VMware) that divides a physical server into virtual machines.", c: "Servers" },
+            { t: "Bare Metal Server", d: "A physical server where the OS is installed directly on hardware without virtualization layers.", c: "Servers" },
+            { t: "AD DS", d: "Active Directory Domain Services; stores directory data and makes it available to users.", c: "Active Directory" },
+            { t: "Directory", d: "A hierarchical structure that stores information about objects on the network.", c: "Active Directory" },
+            { t: "Object", d: "A network element (user account, printer, computer) stored in Active Directory.", c: "Active Directory" },
+            { t: "Schema", d: "Rules dictating the types of objects and attributes allowed in the directory.", c: "Active Directory" },
+            { t: "Global Catalog (GC)", d: "Contains info on every object in the directory for easy searching.", c: "Active Directory" },
+            { t: "LDAP", d: "Lightweight Directory Access Protocol; used for reading/writing to directory services.", c: "Active Directory" },
+            { t: "Authentication", d: "The process of verifying the identity of a user (login process).", c: "Security" },
+            { t: "Authorization", d: "Controlling access to network resources based on security policies.", c: "Security" },
+            { t: "Single Sign-On (SSO)", d: "Allows access to multiple resources with one login via AD DS.", c: "Security" },
+            { t: "Forest", d: "The highest level of logical structure in Active Directory.", c: "Structure" },
+            { t: "Domain Controller", d: "A server running AD DS that stores a copy of the directory information.", c: "Structure" },
+            { t: "OU (Organizational Unit)", d: "A logical container in a domain used to organize objects, mirroring an organization’s layout.", c: "Structure" },
+            { t: "ADUC", d: "Active Directory Users and Computers; standard MMC snap-in for managing users and groups.", c: "Management" },
+            { t: "ADAC", d: "Active Directory Administrative Center; modern tool built on PowerShell with enhanced data management.", c: "Management" },
+            { t: "New-ADOrganizationalUnit", d: "PowerShell cmdlet used specifically to create a new OU.", c: "PowerShell" },
+            { t: "Move-ADObject", d: "PowerShell cmdlet used to move an Active Directory object to a different container.", c: "PowerShell" },
+            { t: "Security Groups", d: "Used to assign permissions to shared resources and simplify administration.", c: "Groups" },
+            { t: "Distribution Groups", d: "Used only for non-security functions, such as sending emails to a list.", c: "Groups" },
+            { t: "Domain Local Group", d: "Used to assign permissions to resources located in the same domain where the group is created.", c: "Groups" },
+            { t: "Global Group", d: "Used to organize users with similar access needs; can be used in any domain.", c: "Groups" },
+            { t: "Universal Group", d: "Used to grant permissions to related resources across multiple domains in a forest.", c: "Groups" },
+            { t: "Delegation of Control", d: "Assigning specific administrative tasks to users without making them high-level admins.", c: "Management" },
+            { t: "Group Nesting", d: "The practice of adding groups to other groups to simplify permission management.", c: "Management" },
+            { t: "Active Directory Recycle Bin", d: "Feature that allows recovery of accidentally deleted objects without backup restoration.", c: "Management" },
+            { t: "Fine-Grained Password Policies", d: "Allows different password policies to be applied to different sets of users in one domain.", c: "Security" },
+            { t: "RODC", d: "Read-Only Domain Controller; contains a read-only copy of AD DS, used for branch offices.", c: "Structure" },
+            { t: "FSMO Roles", d: "Flexible Single Master Operation; specialized tasks to prevent conflicts in the AD database.", c: "Active Directory" },
+            { t: "Server Core", d: "A minimal installation option with no GUI for smaller attack surface.", c: "Windows Server" },
+            { t: "Datacenter Edition", d: "Windows Server version for highly virtualized environments with unlimited VMs.", c: "Windows Server" },
+            { t: "Azure Arc", d: "Provides cloud management for servers regardless of their location.", c: "Windows Server" },
+            { t: "Managed Service Accounts", d: "Specialized accounts for services that don't require manual password management.", c: "Security" },
+            { t: "Default Containers", d: "Automatically created folders in AD (like 'Users') that are not OUs.", c: "Structure" },
+            { t: "Replication Service", d: "Distributes directory data across domain controllers to ensure consistency.", c: "Active Directory" },
+            { t: "Information Lookup", d: "Feature allowing users to find network resources like printers or email.", c: "Active Directory" },
+            { t: "Scalability", d: "The capability of directory services to handle large volumes of search operations.", c: "Active Directory" },
+            { t: "Group Scope", d: "Determines the extent to which a group is applied within a domain or forest.", c: "Groups" },
+            { t: "Computer Account", d: "Object representing a physical or virtual machine joined to the domain.", c: "Active Directory" },
+            { t: "Mainframe Servers", d: "Large computers for massive data processing and high-volume transactions.", c: "Servers" },
+            { t: "Edge Server", d: "Server located close to end users to reduce latency.", c: "Servers" },
+            { t: "Blade Enclosure", d: "The chassis that holds multiple blade servers and provides power/cooling.", c: "Servers" },
+            { t: "MMC (Microsoft Management Console)", d: "A framework that hosts administrative tools (snap-ins).", c: "Tools" },
+            { t: "Snap-in", d: "An administrative tool that can be added to an MMC console.", c: "Tools" },
+            { t: "Virtual Switch", d: "Software that allows VMs to communicate with each other.", c: "Virtualization" },
+            { t: "Extension Pack", d: "Adds features to VirtualBox like USB 3.0 and RDP support.", c: "Virtualization" },
+            { t: "CIDR", d: "Classless Inter-Domain Routing; IP addressing scheme for efficient routing.", c: "Virtualization" },
+            { t: "Uptime", d: "The amount of time a system is functional and available.", c: "Basics" },
+            { t: "Downtime", d: "The period when a system is unavailable for use.", c: "Basics" },
+            { t: "Troubleshooting", d: "The process of identifying and fixing problems within a system.", c: "Basics" }
+        ];
+
+        let studyQueue = [...masterList];
+        let masteredCount = 0;
+        let currentIndex = 0;
+
+        const card = document.getElementById('card-inner');
+        const frontText = document.getElementById('front-text');
+        const backText = document.getElementById('back-text');
+        const tagText = document.getElementById('tag');
+        const leftDisplay = document.getElementById('items-left');
+        const masteredDisplay = document.getElementById('items-mastered');
+
+        function updateCard() {
+            if (studyQueue.length === 0) {
+                frontText.innerText = "TAPOS NA!";
+                backText.innerText = "Mastered all 80 items!";
+                tagText.innerText = "DONE";
+                return;
+            }
+            card.classList.remove('flipped');
+            setTimeout(() => {
+                // Now Front is Definition, Back is Term
+                frontText.innerText = studyQueue[currentIndex].d;
+                backText.innerText = studyQueue[currentIndex].t;
+                tagText.innerText = studyQueue[currentIndex].c;
+                leftDisplay.innerText = studyQueue.length;
+                masteredDisplay.innerText = masteredCount;
+            }, 150);
+        }
+
+        function flipCard() { card.classList.toggle('flipped'); }
+
+        function markCorrect() {
+            if (studyQueue.length === 0) return;
+            studyQueue.splice(currentIndex, 1);
+            masteredCount++;
+            if (currentIndex >= studyQueue.length) currentIndex = 0;
+            updateCard();
+        }
+
+        function markWrong() {
+            if (studyQueue.length === 0) return;
+            let item = studyQueue.splice(currentIndex, 1)[0];
+            studyQueue.push(item);
+            if (currentIndex >= studyQueue.length) currentIndex = 0;
+            updateCard();
+        }
+
+        function nextCard() {
+            currentIndex = (currentIndex + 1) % studyQueue.length;
+            updateCard();
+        }
+
+        function prevCard() {
+            currentIndex = (currentIndex - 1 + studyQueue.length) % studyQueue.length;
+            updateCard();
+        }
+
+        function shuffleQueue() {
+            studyQueue.sort(() => Math.random() - 0.5);
+            currentIndex = 0;
+            updateCard();
+        }
+
+        window.addEventListener('keydown', (e) => {
+            switch(e.code) {
+                case 'Space': flipCard(); e.preventDefault(); break;
+                case 'ArrowRight': nextCard(); break;
+                case 'ArrowLeft': prevCard(); break;
+                case 'Enter': markCorrect(); break;
+                case 'Escape': markWrong(); break;
+            }
+        });
+
+        updateCard();
+    </script>
 </body>
 </html>
